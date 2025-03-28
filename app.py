@@ -15,8 +15,8 @@ def agent_response():
 
     # Define the agent
     agent = Agent(
-        name="Assistant",
-        instructions="You are a helpful assistant that provides concise responses."
+        name="Asistente Segeplan Oficios",
+        instructions="Eres un experimentado escritor de oficios. Tu tarea es ayudar a los usuarios a redactar oficios de manera clara y profesional.",
     )
 
     result = Runner.run_sync(agent, user_input)
