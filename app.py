@@ -2,26 +2,43 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from agents import Agent, Runner
 import os
+import asyncio
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "https://iasegeplan.redciudadana.org/login"
+        ]
+    }
+})
 
 openai_api_key = os.getenv("OPENAI_API_KEY")
 if not openai_api_key:
     raise ValueError("OPENAI_API_KEY not found in environment variables")
+
+def run_agent_sync(agent, user_input):
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    return loop.run_until_complete(Runner.run(agent, user_input))
 
 @app.route('/api/agent', methods=['POST'])
 def agent_response():
     data = request.json
     user_input = data.get('input', '')
 
-    # Define the agent
     agent = Agent(
         name="Asistente Segeplan Oficios",
         instructions="Eres un experimentado escritor de oficios. Tu tarea es ayudar a los usuarios a redactar oficios de manera clara y profesional.",
     )
 
-    result = Runner.run_sync(agent, user_input)
+    # Utiliza la función adaptadora aquí 👇
+    result = run_agent_sync(agent, user_input)
     return jsonify({'response': result.final_output})
 
 if __name__ == '__main__':
