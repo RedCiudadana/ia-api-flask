@@ -31,7 +31,16 @@ def run_agent_sync(agent, user_input, run_config):
 @app.route('/api/agent', methods=['POST'])
 def agent_response():
     data = request.json
-    user_input = data.get('input', '')
+    messages = data.get('messages', [])
+
+    user_input = ""
+    for message in messages:
+        role = message.get("role")
+        content = message.get("content", "")
+        if role == "user":
+            user_input += f"Usuario: {content}\n"
+        elif role == "assistant":
+            user_input += f"Asistente: {content}\n"
 
     agent = Agent(
         name="Asistente Segeplan Oficios",
@@ -39,8 +48,7 @@ def agent_response():
     )
 
     run_config = RunConfig(model="gpt-4o-mini")
-
-    result = run_agent_sync(agent, user_input, run_config)
+    result = run_agent_sync(agent, user_input.strip(), run_config)
     return jsonify({'response': result.final_output})
 
 if __name__ == '__main__':
